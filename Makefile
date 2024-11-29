@@ -34,3 +34,5 @@ re: fclean all
 
 $(LIBFT):
 	make -C ./libft
+
+# .PHONY: debug

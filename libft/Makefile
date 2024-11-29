@@ -6,6 +6,7 @@ FILES=	ft_isalpha.c\
 		ft_atoi.c\
 		ft_isascii.c\
 		ft_memcpy.c\
+		ft_memswap.c\
 		ft_strlcat.c\
 		ft_strrchr.c\
 		ft_bzero.c\
@@ -32,7 +33,8 @@ FILES=	ft_isalpha.c\
 		ft_putstr_fd.c\
 		ft_putendl_fd.c\
 		ft_putnbr_fd.c\
-		ft_strtrim.c
+		ft_strtrim.c\
+		ft_realloc.c
 FILES_BONUS=	ft_lstnew_bonus.c\
 				ft_lstsize_bonus.c\
 				ft_lstlast_bonus.c\

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   libft.h                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gdalmass <gdalmass@student.42.fr>          +#+  +:+       +#+        */
+/*   By: greg <greg@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/04 13:09:04 by gdalmass          #+#    #+#             */
-/*   Updated: 2024/11/11 16:52:17 by gdalmass         ###   ########.fr       */
+/*   Updated: 2024/11/29 15:13:36 by greg             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,7 @@ int				ft_isalpha(int c);
 int				ft_isascii(int c);
 int				ft_isdigit(int c);
 int				ft_isprint(int c);
+int				ft_memswap(void *p1, void *p2, size_t size);
 int				ft_memcmp(void *pnt1, void *pnt2, int size);
 int				ft_strlen(char *str);
 int				ft_strncmp(char *s1, char *s2, unsigned int n);
@@ -48,6 +49,7 @@ void			ft_lstclear(t_list **lst, void (*del)(void*));
 void			ft_lstiter(t_list *lst, void (*f)(void *));
 void			ft_lstadd_front(t_list **lst, t_list *new);
 void			*ft_bzero(void *pnt, size_t count);
+void			*ft_realloc(void *ptr, size_t size);
 void			*ft_calloc(int count, size_t size);
 void			*ft_memchr(void *pnt, int chr, int size);
 void			*ft_memcpy(void *dest, const void *src, int size);

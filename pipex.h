@@ -4,7 +4,7 @@
 # include <fcntl.h>
 # include <unistd.h>
 # include <stdio.h>
-
+# include <sys/wait.h>
 # include "./libft/libft.h"
 
 typedef struct s_pipex
@@ -15,7 +15,7 @@ typedef struct s_pipex
 	char	***cmd_args;
 	int		is_invalid_infile;
 	int		here_doc;
-	// int	cmd_count;
+	int	cmd_count;
 }	t_pipex;
 
 
