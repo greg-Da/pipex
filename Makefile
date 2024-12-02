@@ -10,9 +10,6 @@ NAME=pipex
 
 all: $(NAME)
 
-# bonus: $(OBJS_BONUS)
-# 	ar rcs $(NAME) $(OBJS_BONUS)
-
 $(NAME): $(OBJS) $(LIBFT)
 	gcc $(CFLAGS) -o $(NAME) $(OBJS) $(LIBFT)
 

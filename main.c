@@ -6,7 +6,7 @@
 /*   By: greg <greg@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/27 14:41:27 by gdalmass          #+#    #+#             */
-/*   Updated: 2024/11/29 16:47:18 by greg             ###   ########.fr       */
+/*   Updated: 2024/12/02 12:34:58 by greg             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,8 +18,8 @@ char *ft_get_cmd_path(char **arr, char *cmd)
     char    *path;
     char    *tmp;
 
-    if (access(cmd, X_OK) == 0) // Command is an absolute or relative path
-        return (ft_strdup(cmd)); // Duplicate the path for consistency
+    if (access(cmd, X_OK) == 0)
+        return (ft_strdup(cmd));
 
     i = 0;
     while (arr[i])
@@ -28,11 +28,11 @@ char *ft_get_cmd_path(char **arr, char *cmd)
         path = ft_strjoin(arr[i], tmp);
         free(tmp);
         if (access(path, X_OK) == 0)
-            return (path); // Valid path found
+            return (path);
         free(path);
         i++;
     }
-    return (NULL); // Command not found
+    return (NULL);
 }
 
 char	*ft_get_path_env(char **envp)
@@ -60,18 +60,25 @@ void	ft_init_struct(t_pipex *pipex, int ac, char **av, char **envp)
 	char	**path_arr;
 
 	pipex->here_doc = ft_strncmp(av[1], "here_doc", 8) == 0 ? 1 : 0;
-	fd = open(av[1 + pipex->here_doc], O_RDONLY);
+	if (pipex->here_doc)
+		fd = open("here_doc.txt", O_RDWR | O_CREAT, 0666);
+	else
+		fd = open(av[1 + pipex->here_doc], O_RDONLY);
+	
 	pipex->in_fd = fd;
 	if (fd == -1)
 		pipex->is_invalid_infile = 1;
 	else
 		pipex->is_invalid_infile = 0;
-	fd = open(av[ac - 1], O_RDWR | O_TRUNC | O_CREAT, 0666);
+	if (pipex->here_doc)
+		fd = open(av[ac - 1], O_RDWR | O_APPEND | O_CREAT, 0666);
+	else
+		fd = open(av[ac - 1], O_RDWR | O_TRUNC | O_CREAT, 0666);
 	pipex->out_fd = fd;
 	path_arr = ft_split(ft_get_path_env(envp), ':');
 	pipex->cmd_args = malloc((ac - (3 + pipex->here_doc) + 1) * sizeof(char **));
 	pipex->cmd_path = malloc((ac - (3 + pipex->here_doc) + 1) * sizeof(char *));
-	pipex->cmd_args[ac - (3 + pipex->here_doc)] = NULL; // Ensure NULL termination
+	pipex->cmd_args[ac - (3 + pipex->here_doc)] = NULL;
 	pipex->cmd_path[ac - (3 + pipex->here_doc)] = NULL;
 	i = -1;
 	while (++i < (ac - (3 + pipex->here_doc)))
@@ -90,6 +97,9 @@ void	ft_cleanup(t_pipex pipex)
 	int	i;
 	int	j;
 
+	if (pipex.here_doc)
+		unlink("here_doc.txt");
+	
 	i = -1;
 	while (pipex.cmd_path[++i])
 		free(pipex.cmd_path[i]);
@@ -125,6 +135,70 @@ void	ft_exec(int in, int out, t_pipex *pipex, int i, char **envp)
 	waitpid(pid, NULL, 0);
 }
 
+void	ft_get_here_doc_line(int fd, char *limiter)
+{
+	int		b_read;
+	char	*buf;
+	char	*end;
+
+	buf = malloc(1000);
+	while (1) {
+		write(STDOUT_FILENO, "> ", 2);
+		b_read = read(STDIN_FILENO, buf, 999);
+		if (b_read == -1)
+		{
+			perror("read");
+			exit(EXIT_FAILURE);
+		}
+
+		buf[b_read] = '\0';
+		end = ft_strchr(buf, '\n');
+
+		if (end && (end - buf) == ft_strlen(limiter) && ft_strncmp(buf, limiter, (end - buf)) == 0)
+            break;
+		if (write(fd, buf, b_read) == -1)
+		{
+			perror("write");
+			exit(EXIT_FAILURE);
+		}
+	}
+	free(buf);
+	close(fd);
+}
+
+int	ft_here_doc(int fd, char *limiter)
+{
+	int		pipe_fd[2];
+	int		pid;
+
+	if (pipe(pipe_fd) == -1)
+	{
+		perror("pipe failed");
+        exit(EXIT_FAILURE);
+	}
+	pid = fork();
+	if (pid == -1)
+	{
+		perror("fork failed");
+        exit(EXIT_FAILURE);
+	}
+
+	if (pid == 0)
+		ft_get_here_doc_line(pipe_fd[1], limiter);
+	else
+	{
+		close(pipe_fd[1]);
+		if (dup2(pipe_fd[0], fd) == -1) {
+            perror("dup2 failure");
+            exit(EXIT_FAILURE);
+        }
+		close(pipe_fd[0]);
+		waitpid(pid, NULL, 0);
+	}
+	return (pid);
+
+}
+
 int main(int ac, char **av, char **envp)
 {
 	t_pipex	pipex;
@@ -133,7 +207,13 @@ int main(int ac, char **av, char **envp)
 	int		prev_in;
 
 	ft_init_struct(&pipex, ac, av, envp);
+	if (pipex.here_doc && ft_here_doc(pipex.in_fd, av[2]) == 0)
+	{
+		ft_cleanup(pipex);
+		return (0);
+	}
 	prev_in = pipex.in_fd;
+	
 	
 	i = -1;
 	while (pipex.cmd_path[++i])
