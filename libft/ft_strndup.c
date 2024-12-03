@@ -6,7 +6,7 @@
 /*   By: gdalmass <gdalmass@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/19 13:03:55 by gdalmass          #+#    #+#             */
-/*   Updated: 2024/11/19 13:04:44 by gdalmass         ###   ########.fr       */
+/*   Updated: 2024/12/03 13:45:40 by gdalmass         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 
 char	*ft_strndup(char *src, size_t n)
 {
-	char	*str;
+	char		*str;
 	size_t		i;
 	size_t		length;
 

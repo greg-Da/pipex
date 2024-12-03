@@ -1,6 +1,8 @@
 FLAGS_DEBUG= -fsanitize=address -g3 -O1 -fno-omit-frame-pointer -fno-optimize-sibling-calls
 CFLAGS=-Wall -Wextra -Werror
-FILES= main.c
+FILES= 	main.c\
+		here_doc.c\
+		init_struct.c
 
 LIBFT=./libft/libft.a
 OBJS=$(FILES:.c=.o)
