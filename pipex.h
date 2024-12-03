@@ -6,7 +6,7 @@
 /*   By: gdalmass <gdalmass@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/03 13:21:58 by gdalmass          #+#    #+#             */
-/*   Updated: 2024/12/03 13:41:20 by gdalmass         ###   ########.fr       */
+/*   Updated: 2024/12/03 18:44:57 by gdalmass         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,9 @@ typedef struct s_pipex
 	char	***cmd_args;
 	int		here_doc;
 	int		fd[2];
-	// int		is_invalid_infile;
+	int		exit_code;
+	int		cmd_count;
+	int		is_invalid_infile;
 }	t_pipex;
 
 typedef struct s_prev
@@ -37,8 +39,22 @@ typedef struct s_prev
 	int		i;
 }	t_prev;
 
+typedef struct s_split
+{
+	int	count;
+	int	i;
+	int	j;
+}	t_custom_split;
+
+typedef struct s_quotes
+{
+	int	s_quotes;
+	int	d_quotes;
+}	t_quotes;
+
 void	ft_init_struct(t_pipex *pipex, int ac, char **av, char **envp);
 int		ft_here_doc(int fd, char *limiter);
 void	ft_error(char *str);
+char	**ft_custom_split(char const *s, char c, t_pipex *pipex);
 
 #endif

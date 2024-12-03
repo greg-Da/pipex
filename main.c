@@ -6,7 +6,7 @@
 /*   By: gdalmass <gdalmass@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/03 12:54:38 by gdalmass          #+#    #+#             */
-/*   Updated: 2024/12/03 13:21:33 by gdalmass         ###   ########.fr       */
+/*   Updated: 2024/12/03 18:51:34 by gdalmass         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,19 +42,14 @@ void	ft_exec(t_prev prev, t_pipex *pipex, int i, char **envp)
 
 	pid = fork();
 	if (pid < 0)
-	{
-		perror("fork failed");
-		exit(EXIT_FAILURE);
-	}
+		ft_error("fork failed");
 	if (pid == 0)
 	{
 		dup2(prev.in, STDIN_FILENO);
 		dup2(prev.out, STDOUT_FILENO);
-		execve(pipex->cmd_path[i], pipex->cmd_args[i], envp);
-		perror("execve failed");
-		exit(EXIT_FAILURE);
+		if (execve(pipex->cmd_path[i], pipex->cmd_args[i], envp) == -1)
+			ft_error("execve failed");
 	}
-	waitpid(pid, NULL, 0);
 }
 
 void	ft_error(char *str)
@@ -63,13 +58,17 @@ void	ft_error(char *str)
 	exit(EXIT_FAILURE);
 }
 
-void	ft_loop(t_pipex *pipex, t_prev *prev, char **envp, int ac)
+void	ft_loop(t_pipex *pipex, t_prev *prev, char **envp)
 {
-	while (pipex->cmd_path[++prev->i])
+	while (++prev->i < pipex->cmd_count)
 	{
+		fprintf(stderr, "%s \n", pipex->cmd_path[prev->i]);
+		
+		
 		if (pipe(pipex->fd) == -1)
 			ft_error("pipe failed");
-		if (prev->i == ac - (3 + pipex->here_doc) - 1)
+		
+		if (prev->i == pipex->cmd_count - 1)
 		{
 			prev->out = pipex->out_fd;
 			ft_exec(*prev, pipex, prev->i, envp);
@@ -96,7 +95,7 @@ int	main(int ac, char **av, char **envp)
 		ft_here_doc(pipex.in_fd, av[2]);
 	prev.in = pipex.in_fd;
 	prev.i = -1;
-	ft_loop(&pipex, &prev, envp, ac);
+	ft_loop(&pipex, &prev, envp);
 	ft_cleanup(pipex);
-	return (0);
+	return (pipex.exit_code);
 }

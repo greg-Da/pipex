@@ -2,6 +2,7 @@ FLAGS_DEBUG= -fsanitize=address -g3 -O1 -fno-omit-frame-pointer -fno-optimize-si
 CFLAGS=-Wall -Wextra -Werror
 FILES= 	main.c\
 		here_doc.c\
+		ft_custom_split.c\
 		init_struct.c
 
 LIBFT=./libft/libft.a
