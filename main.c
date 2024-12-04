@@ -6,7 +6,7 @@
 /*   By: gdalmass <gdalmass@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/03 12:54:38 by gdalmass          #+#    #+#             */
-/*   Updated: 2024/12/04 16:10:45 by gdalmass         ###   ########.fr       */
+/*   Updated: 2024/12/04 19:19:23 by gdalmass         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,8 @@ void	ft_cleanup(t_pipex pipex)
 			free(pipex.cmd_args[i][j]);
 		free(pipex.cmd_args[i]);
 	}
+
+	free(pipex.pids);
 	free(pipex.cmd_args);
 }
 
@@ -51,7 +53,6 @@ void	ft_cmd_not_acc(char *name)
 void	ft_exec(t_prev prev, t_pipex *pipex, int i, char **envp)
 {
 	pid_t	pid;
-	int		status;
 
 	pid = fork();
 	if (pid < 0)
@@ -65,16 +66,27 @@ void	ft_exec(t_prev prev, t_pipex *pipex, int i, char **envp)
 			ft_cmd_not_acc(pipex->cmd_args[i][0]);
 			write(prev.out, "\0", 1);
 			if (prev.i == pipex->cmd_count - 1)
-				exit(EXIT_FAILURE);
+			{
+				if (pipex->cmd_path[i] == NULL)
+					pipex->exit_code = 127;
+				else
+					pipex->exit_code = 1;
+				exit(1);
+			}
 		}
 		exit(EXIT_SUCCESS);
 	}
-	if (prev.i == pipex->cmd_count - 1 && !pipex->cmd_path[i])
-	{
-		waitpid(pid, &status, 0);
-		if (WEXITSTATUS(status))
-			exit(127);
-	}
+	pipex->pids_size++;
+	pipex->pids = ft_realloc(pipex->pids, (pipex->pids_size) * sizeof(int), (pipex->pids_size + 1) * sizeof(int));
+	pipex->pids[pipex->pids_size - 1] = pid;
+	// if (prev.i == pipex->cmd_count - 1)
+	// {
+	// 	waitpid(pid, &status, 0);
+	// 	if (WEXITSTATUS(status))
+	// 	{
+	// 		exit(127);
+	// 	}
+	// }
 }
 
 void	ft_error(char *str)
@@ -121,6 +133,11 @@ int	main(int ac, char **av, char **envp)
 {
 	t_pipex	pipex;
 	t_prev	prev;
+	int		i;		// if (pipex.is_invalid_outfile == -1)
+		// {
+		// 	pipex.exit_code = 1;
+		// }
+	int		status;
 
 	ft_init_struct(&pipex, ac, av, envp);
 	if (pipex.here_doc)
@@ -128,6 +145,22 @@ int	main(int ac, char **av, char **envp)
 	prev.in = pipex.in_fd;
 	prev.i = -1;
 	ft_loop(&pipex, &prev, envp);
+
+	i = -1;
+	while(pipex.pids_size > ++i)
+	{
+		waitpid(pipex.pids[i], &status, 0);
+		// if (WEXITSTATUS(status) == 1)
+		// {
+		// 	pipex.exit_code = 1;
+		// }
+		if (prev.out == -1)
+		{
+			pipex.exit_code = 1;
+		}
+		
+	}
+
 	ft_cleanup(pipex);
 	return (pipex.exit_code);
 }

@@ -6,7 +6,7 @@
 /*   By: gdalmass <gdalmass@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/03 13:21:58 by gdalmass          #+#    #+#             */
-/*   Updated: 2024/12/04 15:58:46 by gdalmass         ###   ########.fr       */
+/*   Updated: 2024/12/04 19:19:29 by gdalmass         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,8 @@
 
 typedef struct s_pipex
 {
+	int		*pids;
+	int		pids_size;
 	int		in_fd;
 	int		out_fd;
 	char	**cmd_path;
@@ -30,6 +32,7 @@ typedef struct s_pipex
 	int		exit_code;
 	int		cmd_count;
 	int		is_invalid_infile;
+	// int		is_invalid_outfile;
 }	t_pipex;
 
 typedef struct s_prev

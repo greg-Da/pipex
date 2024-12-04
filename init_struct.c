@@ -6,7 +6,7 @@
 /*   By: gdalmass <gdalmass@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/03 12:42:37 by gdalmass          #+#    #+#             */
-/*   Updated: 2024/12/04 15:58:41 by gdalmass         ###   ########.fr       */
+/*   Updated: 2024/12/04 19:19:44 by gdalmass         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,6 +57,26 @@ char	*ft_get_path_env(char **envp)
 	return (path);
 }
 
+void	ft_create_outfile(t_pipex *pipex, int ac, char **av)
+{
+	int	fd;
+
+	// pipex->is_invalid_outfile = 0;
+	if (pipex->here_doc)
+		fd = open(av[ac - 1], O_RDWR | O_APPEND);
+	else
+		fd = open(av[ac - 1], O_RDWR | O_TRUNC);
+	if (fd == -1)
+	{
+		// pipex->is_invalid_outfile = -1;
+		if (pipex->here_doc)
+			fd = open(av[ac - 1], O_RDWR | O_APPEND | O_CREAT, 0666);
+		else
+			fd = open(av[ac - 1], O_RDWR | O_TRUNC | O_CREAT, 0666);
+	}
+	pipex->out_fd = fd;
+}
+
 void	ft_init_first(t_pipex *pipex, int ac, char **av)
 {
 	int		fd;
@@ -71,13 +91,11 @@ void	ft_init_first(t_pipex *pipex, int ac, char **av)
 		pipex->is_invalid_infile = 1;
 	else
 		pipex->is_invalid_infile = 0;
-	if (pipex->here_doc)
-		fd = open(av[ac - 1], O_RDWR | O_APPEND | O_CREAT, 0666);
-	else
-		fd = open(av[ac - 1], O_RDWR | O_TRUNC | O_CREAT, 0666);
-	pipex->out_fd = fd;
-	pipex->exit_code = 0;
+	ft_create_outfile(pipex, ac, av);
 
+	pipex->exit_code = 0;
+	pipex->pids_size = 0;
+	pipex->pids = malloc(sizeof(int));
 }
 
 void	ft_init_second(t_pipex *pipex, int ac, char **av, char **envp)

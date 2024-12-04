@@ -6,7 +6,7 @@
 /*   By: gdalmass <gdalmass@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/03 15:08:24 by gdalmass          #+#    #+#             */
-/*   Updated: 2024/12/03 17:08:27 by gdalmass         ###   ########.fr       */
+/*   Updated: 2024/12/04 16:45:18 by gdalmass         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,7 @@ static int	ft_count_words(char const *s, char c)
 	{
 		if (*s == '\'' && (s == start || *(s - 1) != '\\'))
 			quotes.s_quotes = !quotes.s_quotes;
-		if (*s == '\"' && (s == start || *(s - 1) != '\\'))
+		if (*s == '\"' && (s== start || *(s  - 1) != '\\'))
 			quotes.d_quotes = !quotes.d_quotes;
 		if (!quotes.s_quotes && !quotes.d_quotes && *s != c && !in_word)
 		{
@@ -77,6 +77,26 @@ static char	**ft_free(char **arr, int j)
 	return (NULL);
 }
 
+char	*ft_remove_slash(char *str, int len)
+{
+	int	i;
+	int	j;
+
+	i = 0;
+	j = 0;
+	if (!str || len <= 0)
+        return str;
+	while (i < len)
+    {
+        if (str[i] == '\\' && (str[i + 1] == '\'' || str[i + 1] == '\"' || str[i + 1] == '\\'))
+            i++;
+        if (i < len)
+            str[j++] = str[i++];
+    }
+    str[j] = '\0';
+	return (str);
+}
+
 char	**ft_custom_split(char const *s, char c, t_pipex *pipex)
 {
 	t_custom_split	t_split;
@@ -112,6 +132,7 @@ char	**ft_custom_split(char const *s, char c, t_pipex *pipex)
 		
 		if (!arr[t_split.j])
 			return (ft_free(arr, t_split.j));
+		arr[t_split.j] = ft_remove_slash(arr[t_split.j], ft_strlen(arr[t_split.j]));
 		t_split.i += ft_next_occurence(s, c, t_split.i) - t_split.i;
 
 	}

@@ -13,6 +13,8 @@ NAME=pipex
 
 all: $(NAME)
 
+bonus: $(NAME)
+
 $(NAME): $(OBJS) $(LIBFT)
 	gcc $(CFLAGS) -o $(NAME) $(OBJS) $(LIBFT)
 
