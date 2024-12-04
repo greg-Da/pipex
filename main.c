@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gdalmass <gdalmass@student.42.fr>          +#+  +:+       +#+        */
+/*   By: greg <greg@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/03 12:54:38 by gdalmass          #+#    #+#             */
-/*   Updated: 2024/12/04 19:19:23 by gdalmass         ###   ########.fr       */
+/*   Updated: 2024/12/04 20:58:38 by greg             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,17 +22,16 @@ void	ft_cleanup(t_pipex pipex)
 	if (pipex.here_doc)
 		unlink("here_doc.txt");
 	i = -1;
-	while (pipex.cmd_path[++i])
-		free(pipex.cmd_path[i]);
-	free(pipex.cmd_path);
 	i = -1;
 	while (pipex.cmd_args[++i])
 	{
 		j = -1;
+		free(pipex.cmd_path[i]);
 		while (pipex.cmd_args[i][++j])
 			free(pipex.cmd_args[i][j]);
 		free(pipex.cmd_args[i]);
 	}
+	free(pipex.cmd_path);
 
 	free(pipex.pids);
 	free(pipex.cmd_args);
@@ -68,10 +67,9 @@ void	ft_exec(t_prev prev, t_pipex *pipex, int i, char **envp)
 			if (prev.i == pipex->cmd_count - 1)
 			{
 				if (pipex->cmd_path[i] == NULL)
-					pipex->exit_code = 127;
+					exit(127);
 				else
-					pipex->exit_code = 1;
-				exit(1);
+					exit(1);
 			}
 		}
 		exit(EXIT_SUCCESS);
@@ -79,14 +77,6 @@ void	ft_exec(t_prev prev, t_pipex *pipex, int i, char **envp)
 	pipex->pids_size++;
 	pipex->pids = ft_realloc(pipex->pids, (pipex->pids_size) * sizeof(int), (pipex->pids_size + 1) * sizeof(int));
 	pipex->pids[pipex->pids_size - 1] = pid;
-	// if (prev.i == pipex->cmd_count - 1)
-	// {
-	// 	waitpid(pid, &status, 0);
-	// 	if (WEXITSTATUS(status))
-	// 	{
-	// 		exit(127);
-	// 	}
-	// }
 }
 
 void	ft_error(char *str)
@@ -108,6 +98,15 @@ void	ft_loop(t_pipex *pipex, t_prev *prev, char **envp)
 				write(pipex->out_fd, "\0", 1);
 			else
 				write(pipex->fd[1], "\0", 1);
+		}
+		else if (pipex->cmd_path[prev->i] == NULL)
+		{
+			if (prev->i == pipex->cmd_count - 1)
+				pipex->exit_code = 127;
+			
+			close(pipex->fd[1]);
+			close(pipex->fd[0]);
+			break ;
 		}
 		else
 		{
@@ -133,10 +132,7 @@ int	main(int ac, char **av, char **envp)
 {
 	t_pipex	pipex;
 	t_prev	prev;
-	int		i;		// if (pipex.is_invalid_outfile == -1)
-		// {
-		// 	pipex.exit_code = 1;
-		// }
+	int		i;
 	int		status;
 
 	ft_init_struct(&pipex, ac, av, envp);
@@ -150,10 +146,11 @@ int	main(int ac, char **av, char **envp)
 	while(pipex.pids_size > ++i)
 	{
 		waitpid(pipex.pids[i], &status, 0);
-		// if (WEXITSTATUS(status) == 1)
-		// {
-		// 	pipex.exit_code = 1;
-		// }
+		if (WEXITSTATUS(status))
+		{
+			if (pipex.pids_size -1 == i)
+				pipex.exit_code = WEXITSTATUS(status);
+		}
 		if (prev.out == -1)
 		{
 			pipex.exit_code = 1;
