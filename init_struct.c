@@ -6,7 +6,7 @@
 /*   By: gdalmass <gdalmass@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/03 12:42:37 by gdalmass          #+#    #+#             */
-/*   Updated: 2024/12/03 18:44:42 by gdalmass         ###   ########.fr       */
+/*   Updated: 2024/12/04 15:58:41 by gdalmass         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,6 +40,11 @@ char	*ft_get_path_env(char **envp)
 	char	*path;
 
 	i = 0;
+	
+		if (!envp[i])
+	{
+		return ("/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin");
+	}
 	while (envp[i])
 	{
 		if (ft_strncmp(envp[i], "PATH=", 5) == 0)

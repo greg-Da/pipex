@@ -6,7 +6,7 @@
 /*   By: gdalmass <gdalmass@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/03 12:54:38 by gdalmass          #+#    #+#             */
-/*   Updated: 2024/12/03 18:51:34 by gdalmass         ###   ########.fr       */
+/*   Updated: 2024/12/04 16:10:45 by gdalmass         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,9 +36,22 @@ void	ft_cleanup(t_pipex pipex)
 	free(pipex.cmd_args);
 }
 
+void	ft_cmd_not_acc(char *name)
+{
+	char	*tmp;
+	char	*tmp2;
+
+	tmp = ft_strjoin("pipex: line 1: ", name);
+	tmp2 = ft_strjoin(tmp, ": command not found\n");
+	ft_putstr_fd(tmp2, 2);
+	free(tmp);
+	free(tmp2);
+}
+
 void	ft_exec(t_prev prev, t_pipex *pipex, int i, char **envp)
 {
 	pid_t	pid;
+	int		status;
 
 	pid = fork();
 	if (pid < 0)
@@ -48,7 +61,19 @@ void	ft_exec(t_prev prev, t_pipex *pipex, int i, char **envp)
 		dup2(prev.in, STDIN_FILENO);
 		dup2(prev.out, STDOUT_FILENO);
 		if (execve(pipex->cmd_path[i], pipex->cmd_args[i], envp) == -1)
-			ft_error("execve failed");
+		{
+			ft_cmd_not_acc(pipex->cmd_args[i][0]);
+			write(prev.out, "\0", 1);
+			if (prev.i == pipex->cmd_count - 1)
+				exit(EXIT_FAILURE);
+		}
+		exit(EXIT_SUCCESS);
+	}
+	if (prev.i == pipex->cmd_count - 1 && !pipex->cmd_path[i])
+	{
+		waitpid(pid, &status, 0);
+		if (WEXITSTATUS(status))
+			exit(127);
 	}
 }
 
@@ -62,21 +87,28 @@ void	ft_loop(t_pipex *pipex, t_prev *prev, char **envp)
 {
 	while (++prev->i < pipex->cmd_count)
 	{
-		fprintf(stderr, "%s \n", pipex->cmd_path[prev->i]);
-		
-		
 		if (pipe(pipex->fd) == -1)
 			ft_error("pipe failed");
-		
-		if (prev->i == pipex->cmd_count - 1)
+		if (prev->in == -1)
 		{
-			prev->out = pipex->out_fd;
-			ft_exec(*prev, pipex, prev->i, envp);
+			ft_putstr_fd("pipex: line 1: input: No such file or directory\n", 2);
+			if (prev->i == pipex->cmd_count - 1)
+				write(pipex->out_fd, "\0", 1);
+			else
+				write(pipex->fd[1], "\0", 1);
 		}
 		else
 		{
-			prev->out = pipex->fd[1];
-			ft_exec(*prev, pipex, prev->i, envp);
+			if (prev->i == pipex->cmd_count - 1)
+			{
+				prev->out = pipex->out_fd;
+				ft_exec(*prev, pipex, prev->i, envp);
+			}
+			else
+			{
+				prev->out = pipex->fd[1];
+				ft_exec(*prev, pipex, prev->i, envp);
+			}
 		}
 		close(pipex->fd[1]);
 		if (prev->in != pipex->in_fd)
