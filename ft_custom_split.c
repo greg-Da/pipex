@@ -3,32 +3,37 @@
 /*                                                        :::      ::::::::   */
 /*   ft_custom_split.c                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gdalmass <gdalmass@student.42.fr>          +#+  +:+       +#+        */
+/*   By: greg <greg@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/03 15:08:24 by gdalmass          #+#    #+#             */
-/*   Updated: 2024/12/04 16:45:18 by gdalmass         ###   ########.fr       */
+/*   Updated: 2024/12/05 13:58:13 by greg             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "pipex.h"
 
-static int	ft_count_words(char const *s, char c)
+void	ft_set_to_zero(int *a, int *b, int *c, int *d)
+{
+	*a = 0;
+	*b = 0;
+	*c = 0;
+	*d = 0;
+}
+
+int	ft_count_words(char const *s, char c)
 {
 	int			count;
 	int			in_word;
 	t_quotes	quotes;
 	const char	*start;
 
-	count = 0;
-	in_word = 0;
-	quotes.s_quotes = 0;
-	quotes.d_quotes = 0;
+	ft_set_to_zero(&count, &in_word, &quotes.d_quotes, &quotes.s_quotes);
 	start = s;
 	while (*s)
 	{
 		if (*s == '\'' && (s == start || *(s - 1) != '\\'))
 			quotes.s_quotes = !quotes.s_quotes;
-		if (*s == '\"' && (s== start || *(s  - 1) != '\\'))
+		if (*s == '\"' && (s == start || *(s - 1) != '\\'))
 			quotes.d_quotes = !quotes.d_quotes;
 		if (!quotes.s_quotes && !quotes.d_quotes && *s != c && !in_word)
 		{
@@ -36,106 +41,62 @@ static int	ft_count_words(char const *s, char c)
 			count++;
 		}
 		else if (!quotes.s_quotes && !quotes.d_quotes && *s == c)
-		{
 			in_word = 0;
-		}
 		s++;
 	}
 	return (count);
 }
 
-static size_t	ft_next_occurence(char const *s, char c, int index)
+void	ft_check_quotes(char **arr, t_custom_split *stru, t_pipex *pipex)
 {
-	t_quotes	quotes;
-	
-	quotes.s_quotes = 0;
-	quotes.d_quotes = 0;
-	while (s[index])
+	if (arr[stru->j][0] == '\'' || arr[stru->j][0] == '\"')
 	{
-		if (s[index] == '\'' && (index == 0 || s[index - 1] != '\\'))
-			quotes.s_quotes = !quotes.s_quotes;
-		if (s[index] == '\"' && (index == 0 || s[index - 1] != '\\'))
-			quotes.d_quotes = !quotes.d_quotes;
-		if (!quotes.s_quotes && !quotes.d_quotes && s[index] == c)
-			break;
-		index++;
+		arr[stru->j][ft_strlen(arr[stru->j]) - 1] = 0;
+		ft_strlcpy(arr[stru->j], &arr[stru->j][1], ft_strlen(arr[stru->j]));
 	}
-	return ((size_t)index);
+	if (arr[stru->j][0] == '\"')
+	{
+		free(arr[stru->j]);
+		arr[stru->j] = ft_strdup("{print}");
+	}
+	if (arr[stru->j][0] == '\'')
+		pipex->exit_code = 1;
 }
 
-static char	**ft_free(char **arr, int j)
+size_t	ft_get_str(const char *s, char c, t_custom_split *stru, char **arr)
 {
-	int	i;
+	size_t	next;
 
-	i = 0;
-	while (i < j)
-	{
-		free(arr[i]);
-		i++;
-	}
-	free(arr);
-	return (NULL);
-}
-
-char	*ft_remove_slash(char *str, int len)
-{
-	int	i;
-	int	j;
-
-	i = 0;
-	j = 0;
-	if (!str || len <= 0)
-        return str;
-	while (i < len)
-    {
-        if (str[i] == '\\' && (str[i + 1] == '\'' || str[i + 1] == '\"' || str[i + 1] == '\\'))
-            i++;
-        if (i < len)
-            str[j++] = str[i++];
-    }
-    str[j] = '\0';
-	return (str);
+	while (s[stru->i] == c)
+		stru->i++;
+	next = ft_next_occurence(s, c, stru->i) - stru->i;
+	arr[stru->j] = ft_substr(s, (unsigned int)stru->i, next);
+	return (next);
 }
 
 char	**ft_custom_split(char const *s, char c, t_pipex *pipex)
 {
-	t_custom_split	t_split;
+	t_custom_split	stru;
 	char			**arr;
+	size_t			next;
 
 	if (!s)
 		return (NULL);
-	t_split.i = 0;
-	t_split.j = -1;
-	t_split.count = ft_count_words(s, c);
-	arr = malloc((t_split.count + 1) * sizeof(char *));
+	stru.i = 0;
+	stru.j = -1;
+	stru.count = ft_count_words(s, c);
+	arr = malloc((stru.count + 1) * sizeof(char *));
 	if (!arr)
 		return (NULL);
-	while (++t_split.j < t_split.count)
+	while (++stru.j < stru.count)
 	{
-		while (s[t_split.i] == c)
-			t_split.i++;
-		arr[t_split.j] = ft_substr(s, (unsigned int)t_split.i, ft_next_occurence(s, c, t_split.i) - t_split.i);
-		if (arr[t_split.j][0] == '\'' || arr[t_split.j][0] == '\"')
-		{
-			arr[t_split.j][ft_strlen(arr[t_split.j]) - 1] = 0;
-			ft_strlcpy(arr[t_split.j], &arr[t_split.j][1], ft_strlen(arr[t_split.j]));
-		}
-		if (arr[t_split.j][0] == '\"')
-		{
-			free(arr[t_split.j]);
-			arr[t_split.j] = ft_strdup("{print}");
-		}
-		if (arr[t_split.j][0] == '\'')
-		{
-			pipex->exit_code = 1;
-		}
-		
-		if (!arr[t_split.j])
-			return (ft_free(arr, t_split.j));
-		arr[t_split.j] = ft_remove_slash(arr[t_split.j], ft_strlen(arr[t_split.j]));
-		t_split.i += ft_next_occurence(s, c, t_split.i) - t_split.i;
-
+		next = ft_get_str(s, c, &stru, arr);
+		ft_check_quotes(arr, &stru, pipex);
+		if (!arr[stru.j])
+			return (ft_free(arr, stru.j));
+		arr[stru.j] = ft_remove_slash(arr[stru.j], ft_strlen(arr[stru.j]));
+		stru.i += next;
 	}
-	arr[t_split.j] = NULL;
+	arr[stru.j] = NULL;
 	return (arr);
 }

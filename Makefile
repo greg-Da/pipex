@@ -3,6 +3,9 @@ CFLAGS=-Wall -Wextra -Werror
 FILES= 	main.c\
 		here_doc.c\
 		ft_custom_split.c\
+		fct_utils.c\
+		invalid.c\
+		exec_unix.c\
 		init_struct.c
 
 LIBFT=./libft/libft.a

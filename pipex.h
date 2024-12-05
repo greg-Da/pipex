@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   pipex.h                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gdalmass <gdalmass@student.42.fr>          +#+  +:+       +#+        */
+/*   By: greg <greg@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/03 13:21:58 by gdalmass          #+#    #+#             */
-/*   Updated: 2024/12/04 19:19:29 by gdalmass         ###   ########.fr       */
+/*   Updated: 2024/12/05 14:58:52 by greg             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,6 @@ typedef struct s_pipex
 	int		exit_code;
 	int		cmd_count;
 	int		is_invalid_infile;
-	// int		is_invalid_outfile;
 }	t_pipex;
 
 typedef struct s_prev
@@ -59,5 +58,13 @@ void	ft_init_struct(t_pipex *pipex, int ac, char **av, char **envp);
 int		ft_here_doc(int fd, char *limiter);
 void	ft_error(char *str);
 char	**ft_custom_split(char const *s, char c, t_pipex *pipex);
+char	**ft_free(char **arr, int j);
+size_t	ft_next_occurence(char const *s, char c, int index);
+char	*ft_remove_slash(char *str, int len);
+void	ft_create_outfile(t_pipex *pipex, int ac, char **av);
+void	ft_cmd_not_acc(char *name);
+void	ft_invalid_cmd(t_pipex *pipex, t_prev *prev);
+int		ft_invalid_infile(t_pipex *pipex, t_prev *prev);
+void	ft_loop(t_pipex *pipex, t_prev *prev, char **envp);
 
 #endif

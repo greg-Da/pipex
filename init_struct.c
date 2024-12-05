@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   init_struct.c                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gdalmass <gdalmass@student.42.fr>          +#+  +:+       +#+        */
+/*   By: greg <greg@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/03 12:42:37 by gdalmass          #+#    #+#             */
-/*   Updated: 2024/12/04 19:19:44 by gdalmass         ###   ########.fr       */
+/*   Updated: 2024/12/05 14:02:35 by greg             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,11 +40,8 @@ char	*ft_get_path_env(char **envp)
 	char	*path;
 
 	i = 0;
-	
-		if (!envp[i])
-	{
+	if (!envp[i])
 		return ("/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin");
-	}
 	while (envp[i])
 	{
 		if (ft_strncmp(envp[i], "PATH=", 5) == 0)
@@ -57,26 +54,6 @@ char	*ft_get_path_env(char **envp)
 	return (path);
 }
 
-void	ft_create_outfile(t_pipex *pipex, int ac, char **av)
-{
-	int	fd;
-
-	// pipex->is_invalid_outfile = 0;
-	if (pipex->here_doc)
-		fd = open(av[ac - 1], O_RDWR | O_APPEND);
-	else
-		fd = open(av[ac - 1], O_RDWR | O_TRUNC);
-	if (fd == -1)
-	{
-		// pipex->is_invalid_outfile = -1;
-		if (pipex->here_doc)
-			fd = open(av[ac - 1], O_RDWR | O_APPEND | O_CREAT, 0666);
-		else
-			fd = open(av[ac - 1], O_RDWR | O_TRUNC | O_CREAT, 0666);
-	}
-	pipex->out_fd = fd;
-}
-
 void	ft_init_first(t_pipex *pipex, int ac, char **av)
 {
 	int		fd;
@@ -85,35 +62,39 @@ void	ft_init_first(t_pipex *pipex, int ac, char **av)
 	if (pipex->here_doc)
 		fd = open("here_doc.txt", O_RDWR | O_CREAT, 0666);
 	else
-		fd = open(av[1 + pipex->here_doc], O_RDONLY);
+		fd = open(av[1], O_RDONLY);
 	pipex->in_fd = fd;
 	if (fd == -1)
-		pipex->is_invalid_infile = 1;
+	{
+		if (access(av[1], F_OK) != 0)
+			pipex->is_invalid_infile = 1;
+		else
+			pipex->is_invalid_infile = 2;
+	}
 	else
 		pipex->is_invalid_infile = 0;
 	ft_create_outfile(pipex, ac, av);
-
 	pipex->exit_code = 0;
 	pipex->pids_size = 0;
 	pipex->pids = malloc(sizeof(int));
 }
 
-void	ft_init_second(t_pipex *pipex, int ac, char **av, char **envp)
+void	ft_init_second(t_pipex *pip, int ac, char **av, char **envp)
 {
 	int		i;
 	char	**path_arr;
 
-	pipex->cmd_count = ac - (3 + pipex->here_doc);
+	pip->cmd_count = ac - (3 + pip->here_doc);
 	path_arr = ft_split(ft_get_path_env(envp), ':');
-	pipex->cmd_args = malloc((pipex->cmd_count + 1) * sizeof(char **));
-	pipex->cmd_path = malloc((pipex->cmd_count + 1) * sizeof(char *));
-	pipex->cmd_args[pipex->cmd_count] = NULL;
-	pipex->cmd_path[pipex->cmd_count] = NULL;
+	pip->cmd_args = malloc((pip->cmd_count + 1) * sizeof(char **));
+	pip->cmd_path = malloc((pip->cmd_count + 1) * sizeof(char *));
+	pip->cmd_args[pip->cmd_count] = NULL;
+	pip->cmd_path[pip->cmd_count] = NULL;
 	i = -1;
-	while (++i < (pipex->cmd_count))
+	while (++i < (pip->cmd_count))
 	{
-		pipex->cmd_args[i] = ft_custom_split(av[i + 2 + pipex->here_doc], 32, pipex);
-		pipex->cmd_path[i] = ft_get_cmd_path(path_arr, pipex->cmd_args[i][0]);
+		pip->cmd_args[i] = ft_custom_split(av[i + 2 + pip->here_doc], 32, pip);
+		pip->cmd_path[i] = ft_get_cmd_path(path_arr, pip->cmd_args[i][0]);
 	}
 	i = -1;
 	while (path_arr[++i])
