@@ -8,15 +8,25 @@ FILES= 	main.c\
 		exec_unix.c\
 		init_struct.c
 
+FILES_BONUS= 	main_bonus.c\
+				here_doc_bonus.c\
+				ft_custom_split_bonus.c\
+				fct_utils_bonus.c\
+				invalid_bonus.c\
+				exec_unix_bonus.c\
+				init_struct_bonus.c
+
 LIBFT=./libft/libft.a
 OBJS=$(FILES:.c=.o)
 OBJS_BONUS=$(FILES_BONUS:.c=.o)
 NAME=pipex
+BONUS=pipex
 
 
 all: $(NAME)
 
-bonus: $(NAME)
+bonus: $(OBJS_BONUS) $(LIBFT)
+	gcc $(CFLAGS) -o $(NAME) $(OBJS_BONUS) $(LIBFT)
 
 $(NAME): $(OBJS) $(LIBFT)
 	gcc $(CFLAGS) -o $(NAME) $(OBJS) $(LIBFT)
@@ -40,4 +50,4 @@ re: fclean all
 $(LIBFT):
 	make -C ./libft
 
-# .PHONY: debug
+# .PHONY: debug bonus
