@@ -6,7 +6,7 @@
 /*   By: gdalmass <gdalmass@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/05 14:54:13 by greg              #+#    #+#             */
-/*   Updated: 2024/12/06 14:32:16 by gdalmass         ###   ########.fr       */
+/*   Updated: 2025/01/23 13:34:51 by gdalmass         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -81,7 +81,8 @@ void	ft_loop(t_pipex *pipex, t_prev *prev, char **envp)
 		else if (pipex->cmd_path[prev->i] == NULL)
 		{
 			ft_invalid_cmd(pipex, prev);
-			break ;
+			prev->in = pipex->fd[0];
+			continue ;
 		}
 		else if (ft_is_echo(pipex, prev))
 			continue ;

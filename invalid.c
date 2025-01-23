@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   invalid.c                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: greg <greg@student.42.fr>                  +#+  +:+       +#+        */
+/*   By: gdalmass <gdalmass@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/05 14:55:24 by greg              #+#    #+#             */
-/*   Updated: 2024/12/05 14:59:25 by greg             ###   ########.fr       */
+/*   Updated: 2025/01/15 17:34:29 by gdalmass         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,10 +26,15 @@ void	ft_cmd_not_acc(char *name)
 
 void	ft_invalid_cmd(t_pipex *pipex, t_prev *prev)
 {
+	char	*tmp;
+
 	if (prev->i == pipex->cmd_count - 1)
 		pipex->exit_code = 127;
+	tmp = ft_strjoin(pipex->cmd_args[prev->i][0], ": command not found");
+	ft_putstr_fd(tmp, 2);
+	ft_putstr_fd("\n", 2);
+	free(tmp);
 	close(pipex->fd[1]);
-	close(pipex->fd[0]);
 }
 
 int	ft_invalid_infile(t_pipex *pipex, t_prev *prev)
